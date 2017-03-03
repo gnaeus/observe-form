@@ -1,0 +1,96 @@
+<html>
+<head>
+    <style type="text/css">
+        body, input, select, textarea { font: 14px Consolas, monospace; }
+        #form { margin: 10px 0; }
+    </style>
+    <script src="./vendors/ie9-oninput-polyfill.js"></script>
+    <script src="./vendors/MutationObserver.js"></script>
+    <script type="text/javascript">
+        var exports = {};
+    </script>
+    <script src="./observe-form.js"></script>
+</head>
+<body>
+    <fieldset id="form">
+        text: <input type="text" name="text" value="text" />
+        <br />
+        checkbox: <input type="checkbox" name="checkbox" checked />
+        <br />
+        radio:
+        <input type="radio" name="radio" value="first" />
+        <input type="radio" name="radio" value="second" />
+        <br />
+        hidden: 
+        <input type="hidden" name="bool" value="False" />
+        <input type="hidden" name="number" value="123" />
+        <br />
+        select:
+        <select name="select">
+            <option value="first">First</option>
+            <option value="second">Second</option>
+        </select>
+    </fieldset>
+
+    <select id="type">
+        <option value="text">text</option>
+        <option value="checkbox">checkbox</option>
+        <option value="radio">radio</option>
+        <option value="hidden">hidden</option>
+        <option value="password">password</option>
+        <option value="search">search</option>
+    </select>
+    <input type="text" id="name" placeholder="name" />
+    <input type="text" id="value" placeholder="value" />
+    <button id="add">Add</button>
+
+    <code>
+        <pre id="result"></pre>
+    </code>
+    
+    <script type="text/javascript">
+        (function() {
+            var context = {
+                text: null,
+                checkbox: false,
+                radio: null,
+                bool: true,
+                number: 0,
+                select: null,
+            };
+            var form = document.querySelector("#form");
+            var type = document.querySelector("#type");
+            var name = document.querySelector("#name");
+            var value = document.querySelector("#value");
+            var add = document.querySelector("#add");
+            var result = document.querySelector("#result");
+
+            var timeout = 0;
+            function printChanges() {
+                timeout = setTimeout(function () {
+                    if (timeout) {
+                        clearTimeout(timeout);
+                        timeout = 0;
+                    }
+                    result.textContent = JSON.stringify(context, null, 2);
+                }, 0);
+            }
+            
+            printChanges();
+            form.addEventListener("input", printChanges);
+            form.addEventListener("change", printChanges);
+            
+            add.addEventListener("click", function () {
+                form.appendChild(document.createElement("br"));
+                var input = document.createElement("input");
+                input.setAttribute("type", type.value);
+                input.setAttribute("name", name.value);
+                input.setAttribute("value", value.value);
+                form.appendChild(input);
+            });
+
+            exports.observeForm(form, context);
+        })();
+    </script>
+</body>
+</html>

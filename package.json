@@ -1,0 +1,22 @@
+{
+  "name": "observe-form",
+  "version": "0.1.0",
+  "description": "",
+  "main": "observe-form.js",
+  "scripts": {
+    "test": "start test.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gnaeus/observe-form.git"
+  },
+  "author": "Dmitry Panyushkin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gnaeus/observe-form/issues"
+  },
+  "homepage": "https://github.com/gnaeus/observe-form#readme",
+  "devDependencies": {
+    "typescript": "^2.2.1"
+  }
+}

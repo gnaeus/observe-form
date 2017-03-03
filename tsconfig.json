@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "experimentalDecorators": true,
+    "lib": [
+      "dom", "es5"
+    ],
+    "target": "es5",
+    "watch": true
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
