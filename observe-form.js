@@ -5,43 +5,68 @@ var booleanMap = {
     "True": true, "False": false,
 };
 var pathRegex = /^(?:[a-zA-Z][a-zA-Z0-9]*|\[[0-9]+\])(?:\.[a-zA-Z][a-zA-Z0-9]*|\[[0-9]+\])*$/;
-function makeSetter(path, context) {
+var boundClassMarker = "__observe-form_bound";
+function makeSetter(path, formClass, context) {
     if (!path || !pathRegex.test(path)) {
         throw new Error("Input name \"" + path + "\" is invalid\"");
     }
+    var selector = "." + formClass + " [name=" + path + "]." + boundClassMarker;
     var parts = path.split(/[\.\[\]]/g).filter(function (s) { return s.length > 0; });
     var prefixCount = parts.length - 1;
     var obj = context;
     for (var i = 0; i < prefixCount; i++) {
-        var prop = parts[i];
-        if (!obj[prop]) {
-            obj[prop] = isNaN(parseInt(parts[i + 1])) ? {} : [];
+        var part = parts[i];
+        if (!obj[part]) {
+            obj[part] = isNaN(parseInt(parts[i + 1])) ? {} : [];
         }
         ;
-        obj = obj[prop];
+        obj = obj[part];
     }
-    var part = parts[parts.length - 1];
+    var prop = parts[parts.length - 1];
+    var propValue = obj[prop];
+    Object.defineProperty(obj, prop, {
+        get: function () {
+            return propValue;
+        },
+        set: function (value) {
+            propValue = value;
+            var elements = document.querySelectorAll(selector);
+            for (var i = 0; i < elements.length; i++) {
+                var element = elements[i];
+                if (element) {
+                    if (element.type === "checkbox") {
+                        element.checked = value;
+                    }
+                    else if (element.type === "radio") {
+                        element.checked = (element.value === value);
+                    }
+                    else {
+                        element.value = value;
+                    }
+                }
+            }
+        },
+    });
     return function (value) {
         if (typeof value === "string") {
-            var oldValue = obj[part];
-            if (typeof oldValue === "number") {
+            if (typeof propValue === "number") {
                 var number = parseFloat(value);
-                obj[part] = isNaN(number) ? null : number;
+                obj[prop] = isNaN(number) ? null : number;
             }
-            else if (typeof oldValue === "boolean") {
-                obj[part] = value ? booleanMap[value] : null;
+            else if (typeof propValue === "boolean") {
+                obj[prop] = value ? booleanMap[value] : null;
             }
             else {
-                obj[part] = value;
+                obj[prop] = value;
             }
         }
         else {
-            obj[part] = value;
+            obj[prop] = value;
         }
     };
 }
-var bindTextInput = function (input, context) {
-    var setter = makeSetter(input.getAttribute("name"), context);
+function bindTextInput(input, formClass, context) {
+    var setter = makeSetter(input.getAttribute("name"), formClass, context);
     input.addEventListener("input", function () {
         setter(input.value);
     });
@@ -49,57 +74,69 @@ var bindTextInput = function (input, context) {
         setter(input.value);
     });
     setter(input.value);
-    input.className += " .__observe-form_bound";
-};
-function bindChangeInput(element, context) {
-    var setter = makeSetter(element.getAttribute("name"), context);
+    input.className += " " + boundClassMarker;
+}
+function bindChangeInput(element, formClass, context) {
+    var setter = makeSetter(element.getAttribute("name"), formClass, context);
     element.addEventListener("change", function () {
         setter(element.value);
     });
     setter(element.value);
-    element.className += " .__observe-form_bound";
+    element.className += " " + boundClassMarker;
 }
-function bindCheckbox(checkbox, context) {
-    var setter = makeSetter(checkbox.getAttribute("name"), context);
+function bindCheckbox(checkbox, formClass, context) {
+    var setter = makeSetter(checkbox.getAttribute("name"), formClass, context);
     checkbox.addEventListener("change", function () {
         setter(checkbox.checked);
     });
     setter(checkbox.checked);
-    checkbox.className += " .__observe-form_bound";
+    checkbox.className += " " + boundClassMarker;
 }
-var textSelector = ("input[type=text][name]:not(.__observe-form_bound)," +
-    "input[type=password][name]:not(.__observe-form_bound)," +
-    "input[type=email][name]:not(.__observe-form_bound)," +
-    "input[type=number][name]:not(.__observe-form_bound)," +
-    "input[type=range][name]:not(.__observe-form_bound)," +
-    "input[type=search][name]:not(.__observe-form_bound)," +
-    "input[type=tel][name]:not(.__observe-form_bound)," +
-    "input[type=url][name]:not(.__observe-form_bound)," +
-    "textarea[name]:not(.__observe-form_bound)");
-var changeSelector = ("input[type=radio][name]:not(.__observe-form_bound)," +
-    "input[type=file][name]:not(.__observe-form_bound)," +
-    "input[type=hidden][name]:not(.__observe-form_bound)," +
-    "select[name]:not(.__observe-form_bound)");
-var checkboxSelector = "input[type=checkbox][name]:not(.__observe-form_bound)";
-function bindSubtree(root, context) {
+function bindHiddenInput(input, formClass, context) {
+    var setter = makeSetter(input.getAttribute("name"), formClass, context);
+    setter(input.value);
+    input.className += " " + boundClassMarker;
+}
+var textSelector = ("input[type=text][name]:not(." + boundClassMarker + ")," +
+    ("input[type=password][name]:not(." + boundClassMarker + "),") +
+    ("input[type=email][name]:not(." + boundClassMarker + "),") +
+    ("input[type=number][name]:not(." + boundClassMarker + "),") +
+    ("input[type=range][name]:not(." + boundClassMarker + "),") +
+    ("input[type=search][name]:not(." + boundClassMarker + "),") +
+    ("input[type=tel][name]:not(." + boundClassMarker + "),") +
+    ("input[type=url][name]:not(." + boundClassMarker + "),") +
+    ("textarea[name]:not(." + boundClassMarker + ")"));
+var changeSelector = ("input[type=radio][name]:not(." + boundClassMarker + ")," +
+    ("input[type=file][name]:not(." + boundClassMarker + "),") +
+    ("select[name]:not(." + boundClassMarker + ")"));
+var checkboxSelector = "input[type=checkbox][name]:not(." + boundClassMarker + ")";
+var hiddenSelector = "input[type=hidden][name]:not(." + boundClassMarker + ")";
+function bindSubtree(root, formClass, context) {
     var textInputs = root.querySelectorAll(textSelector);
     for (var i = 0; i < textInputs.length; i++) {
-        bindTextInput(textInputs[i], context);
+        bindTextInput(textInputs[i], formClass, context);
     }
     var changeInputs = root.querySelectorAll(changeSelector);
     for (var i = 0; i < changeInputs.length; i++) {
-        bindChangeInput(changeInputs[i], context);
+        bindChangeInput(changeInputs[i], formClass, context);
     }
     var checkboxes = root.querySelectorAll(checkboxSelector);
     for (var i = 0; i < checkboxes.length; i++) {
-        bindCheckbox(checkboxes[i], context);
+        bindCheckbox(checkboxes[i], formClass, context);
+    }
+    var hiddens = root.querySelectorAll(hiddenSelector);
+    for (var i = 0; i < hiddens.length; i++) {
+        bindHiddenInput(hiddens[i], formClass, context);
     }
 }
+var boundFormIndex = 1;
 function observeForm(form, context) {
     if (context === void 0) { context = {}; }
-    bindSubtree(form, context);
+    var formClass = boundClassMarker + "-" + (boundFormIndex++);
+    form.className += " " + formClass;
+    bindSubtree(form, formClass, context);
     var observer = new MutationObserver(function () {
-        bindSubtree(form, context);
+        bindSubtree(form, formClass, context);
     });
     observer.observe(form, {
         childList: true,
