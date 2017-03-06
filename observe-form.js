@@ -10,7 +10,7 @@ function makeSetter(path, formClass, context) {
     if (!path || !pathRegex.test(path)) {
         throw new Error("Input name \"" + path + "\" is invalid\"");
     }
-    var selector = "." + formClass + " [name=" + path + "]." + boundClassMarker;
+    var selector = "." + formClass + " [name=\"" + path + "\"]." + boundClassMarker;
     var parts = path.split(/[\.\[\]]/g).filter(function (s) { return s.length > 0; });
     var prefixCount = parts.length - 1;
     var obj = context;
@@ -19,12 +19,12 @@ function makeSetter(path, formClass, context) {
         if (!obj[part]) {
             obj[part] = isNaN(parseInt(parts[i + 1])) ? {} : [];
         }
-        ;
         obj = obj[part];
     }
     var prop = parts[parts.length - 1];
     var propValue = obj[prop];
     Object.defineProperty(obj, prop, {
+        enumerable: true,
         get: function () {
             return propValue;
         },

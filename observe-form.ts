@@ -12,7 +12,7 @@ function makeSetter(path: string, formClass: string, context: {}) {
         throw new Error(`Input name "${path}" is invalid"`);
     }
 
-    const selector = `.${formClass} [name=${path}].${boundClassMarker}`;
+    const selector = `.${formClass} [name="${path}"].${boundClassMarker}`;
     const parts = path.split(/[\.\[\]]/g).filter(s => s.length > 0);
     const prefixCount = parts.length - 1;
     let obj = context;
@@ -21,7 +21,7 @@ function makeSetter(path: string, formClass: string, context: {}) {
         const part = parts[i];
         if (!obj[part]) {
             obj[part] = isNaN(parseInt(parts[i + 1])) ? {} : [];
-        };
+        }
         obj = obj[part];
     }
     
@@ -29,6 +29,7 @@ function makeSetter(path: string, formClass: string, context: {}) {
     let propValue = obj[prop];
     
     Object.defineProperty(obj, prop, {
+        enumerable: true,
         get() {
             return propValue;
         },
