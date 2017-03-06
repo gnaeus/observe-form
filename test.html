@@ -3,7 +3,12 @@
     <style type="text/css">
         body, input, select, textarea { font: 14px Consolas, monospace; }
         #form { margin: 10px 0; }
+        #result { display: flex; width: 100%; }
+        #result > code { flex: auto; margin: 10px; }
+        #model, #view { border: 1px solid #aaa; border-radius: 4px; }
     </style>
+    <link rel="stylesheet" href="./vendors/highlight/styles/github.css">
+    <script src="./vendors/highlight/highlight.pack.js"></script>
     <script src="./vendors/ie9-oninput-polyfill.js"></script>
     <script src="./vendors/MutationObserver.js"></script>
     <script type="text/javascript">
@@ -13,29 +18,26 @@
 </head>
 <body>
     <fieldset id="form">
-        text: <input type="text" name="text" value="text" />
-        <br />
-        checkbox: <input type="checkbox" name="checkbox" checked />
-        <br />
-        radio:
-        <input type="radio" name="radio" value="first" />
-        <input type="radio" name="radio" value="second" />
-        <br />
-        hidden: 
-        <input type="hidden" name="bool" value="False" />
-        <input type="hidden" name="number" value="123" />
-        <br />
-        select:
-        <select name="select">
-            <option value="first">First</option>
-            <option value="second">Second</option>
-        </select>
-        select:
-        <select name="select">
-            <option value="first">First</option>
-            <option value="second">Second</option>
-        </select>
-        <br />
+        <div>text: <input type="text" name="text" value="text" /></div>
+        <div>checkbox: <input type="checkbox" name="checkbox" checked /></div>
+        <div>radio:
+            <input type="radio" name="radio" value="first" />
+            <input type="radio" name="radio" value="second" />
+        </div>
+        <div>bool: <input type="hidden" name="bool" value="False" /></div>
+        <div>number: <input type="hidden" name="number" value="123" /></div>
+        <div>
+            select:
+            <select name="select">
+                <option value="first">First</option>
+                <option value="second">Second</option>
+            </select>
+            select:
+            <select name="select">
+                <option value="first">First</option>
+                <option value="second">Second</option>
+            </select>
+        </div>
     </fieldset>
 
     <select id="type">
@@ -50,9 +52,14 @@
     <input type="text" id="value" placeholder="value" />
     <button id="add">Add</button>
 
-    <code>
-        <pre id="result"></pre>
-    </code>
+    <div id="result">
+        <code class="js">
+            <pre id="model"></pre>
+        </code>
+        <code class="html">
+            <pre id="view"></pre>
+        </code>
+    </div>
     
     <script type="text/javascript">
         (function() {
@@ -69,7 +76,8 @@
             var name = document.querySelector("#name");
             var value = document.querySelector("#value");
             var add = document.querySelector("#add");
-            var result = document.querySelector("#result");
+            var model = document.querySelector("#model");
+            var view = document.querySelector("#view");
 
             var timeout = 0;
             function printChanges() {
@@ -78,7 +86,14 @@
                         clearTimeout(timeout);
                         timeout = 0;
                     }
-                    result.textContent = JSON.stringify(context, null, 2);
+                    model.textContent = JSON.stringify(context, null, 2);
+                    view.textContent = form.innerHTML
+                        .split("\n")
+                        .map(function (row) { return row.replace("        ", ""); })
+                        .join("\n");
+                    
+                    hljs.highlightBlock(model);
+                    hljs.highlightBlock(view);
                 }, 0);
             }
             
@@ -87,12 +102,16 @@
             form.addEventListener("change", printChanges);
             
             add.addEventListener("click", function () {
-                form.appendChild(document.createElement("br"));
+                var div = document.createElement("div");
+                div.textContent = name.value + ": ";
                 var input = document.createElement("input");
                 input.setAttribute("type", type.value);
                 input.setAttribute("name", name.value);
                 input.setAttribute("value", value.value);
-                form.appendChild(input);
+                div.appendChild(input);
+                form.appendChild(document.createTextNode("\n"));
+                form.appendChild(div);
+                printChanges();
             });
 
             exports.observeForm(form, context);
