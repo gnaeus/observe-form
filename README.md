@@ -30,5 +30,7 @@ context == {
 
 Uses [MutationObserver](https://developer.mozilla.org/en/docs/Web/API/MutationObserver) on `<form>` to bind dynamically created `<input>`s
 
-For IE9 there is also a polyfill for MutationObserver — [MutationObserver.js](https://github.com/megawac/MutationObserver.js)<br>
-And polyfill for firing `input` event when user press `Backspace` [ie9-oninput-polyfill](https://github.com/buzinas/ie9-oninput-polyfill)
+For IE9 and IE10 it uses [DOMSubtreeModified](https://developer.mozilla.org/en-US/docs/Web/Events/DOMSubtreeModified) event
+(from deprecated Mutation Events)
+
+IE9 also needs a polyfill for firing `input` event when user press `Backspace` [ie9-oninput-polyfill](https://github.com/buzinas/ie9-oninput-polyfill)

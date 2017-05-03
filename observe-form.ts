@@ -30,6 +30,7 @@ function makeSetter(path: string, formClass: string, context: {}) {
     
     Object.defineProperty(obj, prop, {
         enumerable: true,
+        configurable: true,
         get() {
             return propValue;
         },
@@ -129,6 +130,7 @@ const checkboxSelector = `input[type=checkbox][name]:not(.${boundClassMarker})`;
 const hiddenSelector = `input[type=hidden][name]:not(.${boundClassMarker})`;
 
 function bindSubtree(root: HTMLElement, formClass: string, context: {}) {
+    // console.log("bindSubtree");
     const textInputs = root.querySelectorAll(textSelector);
     for (let i = 0; i < textInputs.length; i++) {
         bindTextInput(textInputs[i] as any, formClass, context);
@@ -154,12 +156,30 @@ export function observeForm(form: HTMLElement, context = {}) {
     form.className += " " + formClass;
 
     bindSubtree(form, formClass, context);
-    const observer = new MutationObserver(() => {
-        bindSubtree(form, formClass, context);
-    });
-    observer.observe(form, {
-        childList: true,
-        subtree: true,
-    });
+
+    if ("MutationObserver" in window) {
+        const observer = new MutationObserver(() => {
+            bindSubtree(form, formClass, context);
+        });
+        observer.observe(form, {
+            childList: true,
+            subtree: true,
+        });
+    } else if ("MutationEvent" in window) {
+        const schedule = ("setImmediate" in window) ? setImmediate : setTimeout;
+
+        let taskScheduled = false;
+
+        form.addEventListener("DOMSubtreeModified", () => {
+            if (!taskScheduled) {
+                taskScheduled = true;
+                schedule(() => {
+                    bindSubtree(form, formClass, context);
+                    taskScheduled = false;
+                });
+            }
+        });
+    }
+    
     return context;
 }

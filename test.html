@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="./vendors/highlight/styles/github.css">
     <script src="./vendors/highlight/highlight.pack.js"></script>
     <script src="./vendors/ie9-oninput-polyfill.js"></script>
-    <script src="./vendors/MutationObserver.js"></script>
     <script type="text/javascript">
         var exports = {};
     </script>
@@ -110,6 +109,7 @@
                 input.setAttribute("value", value.value);
                 div.appendChild(input);
                 form.appendChild(document.createTextNode("\n"));
+                // form.appendChild(div.cloneNode(true));
                 form.appendChild(div);
                 printChanges();
             });
